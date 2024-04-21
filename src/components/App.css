@@ -28,4 +28,13 @@ body {
   background: #0091FF;
 }
 
+.error {
+  color: red;
+  font-size: 50px;
+}
+
+.loading {
+  font-size: 50px;
+}
+
 /*# sourceMappingURL=App.css.map */

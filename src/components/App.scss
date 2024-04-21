@@ -32,3 +32,12 @@ body{
 .lowest-rate{
   background: $lowest-color;
 }
+
+.error {
+  color: red;
+  font-size: 50px;
+}
+
+.loading {
+  font-size: 50px;
+}

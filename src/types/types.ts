@@ -4,6 +4,19 @@ export interface Rates {
     EUR: number;
 }
 
-export interface CurrenciesMarket {
+export interface FetchRatesResult {
+    rates: Rates[];
+    loading: boolean;
+    error: string | null;
+}
+
+export interface Currencies {
     first: number;
+    second: number;
+    third: number;
+}
+
+export interface CurrencyPair {
+    label: string;
+    rates: number[]
 }

@@ -1,42 +1,68 @@
 import MainRow from "./MainRow";
+import {useFetchRates} from "../hooks/useFetchRates";
 import CurrencyRow from "./CurrencyRow";
-import {useEffect, useState} from "react";
-import {Rates} from "../types/types";
-import {base_url} from "../constants/constants";
+import {useMemo} from "react";
+import {CurrencyPair} from "../types/types";
+import {useLowestRate} from "../hooks/useLowestRate";
+import Loading from "./Loading";
+import ErrorComponent from "./ErrorComponent";
+
 function Table() {
 
-    const [rates, setRates] = useState<Rates>({RUB: 0, USD: 0, EUR: 0});
-    const [rubToUsd, setRubToUsd] = useState<number>(0);
-    const [rubToEur, setRubToEur] = useState<number>(0);
-    const [eurToUsd, setEurToUsd] = useState<number>(0);
+    const {rates, loading, error} = useFetchRates();
 
-    async function fetchRates() {
-        try {
-            const res = await fetch(`${base_url}/first`);
-            const data = await res.json();
-            const {RUB, USD, EUR} = data.rates;
-            setRates({RUB, USD, EUR});
-            setRubToUsd(RUB / USD);
-            setRubToEur(RUB / EUR);
-            setEurToUsd(EUR / USD);
-        } catch (error) {
-            console.error('Error fetching exchange rates:', error);
-        }
+    const rubles = useMemo(() => rates.map(rate => rate.RUB), [rates]);
+    const dollars = useMemo(() => rates.map(rate => rate.USD), [rates]);
+    const euros = useMemo(() => rates.map(rate => rate.EUR), [rates]);
+
+    const rubToUsd = useMemo(() => rates.map(rate => rate.RUB / rate.USD), [rates]);
+    const rubToEur = useMemo(() => rates.map(rate => rate.RUB / rate.EUR), [rates]);
+    const eurToUsd = useMemo(() => rates.map(rate => rate.EUR / rate.USD), [rates]);
+
+    const currencyPairs: CurrencyPair[] = [
+        {label: "RUB/USD", rates: rubToUsd},
+        {label: "RUB/EUR", rates: rubToEur},
+        {label: "EUR/USD", rates: eurToUsd}
+    ];
+
+    const lowestRateRUB = useLowestRate(rubles);
+    const lowestRateUSD = useLowestRate(dollars);
+    const lowestRateEUR = useLowestRate(euros);
+    const lowestRubToUsd = useLowestRate(rubToUsd);
+    const lowestRubToEur = useLowestRate(rubToEur);
+    const lowestEurToUsd = useLowestRate(eurToUsd);
+
+    if (loading) {
+        return <Loading/>
     }
 
-    useEffect(() => {
-        fetchRates();
-    }, []);
+    if (error) {
+        return <ErrorComponent/>
+    }
 
     return (
         <div className='table'>
             <MainRow/>
-            <CurrencyRow label='RUB/CUPCAKE' rates={{first: rates.RUB}}/>
-            <CurrencyRow label='USD/CUPCAKE' rates={{first: rates.USD}}/>
-            <CurrencyRow label='EUR/CUPCAKE' rates={{first: rates.EUR}}/>
-            <CurrencyRow label='RUB/USD' rates={{first: rubToUsd}}/>
-            <CurrencyRow label='RUB/EUR' rates={{first: rubToEur}}/>
-            <CurrencyRow label='EUR/USD' rates={{first: eurToUsd}}/>
+            <CurrencyRow label='RUB/CUPCAKE'
+                         rates={{first: rates[0].RUB, second: rates[1].RUB, third: rates[2].RUB}}
+                         lowestRate={lowestRateRUB}
+            />
+            <CurrencyRow label='USD/CUPCAKE'
+                         rates={{first: rates[0].USD, second: rates[1].USD, third: rates[2].USD}}
+                         lowestRate={lowestRateUSD}
+            />
+            <CurrencyRow label='EUR/CUPCAKE'
+                         rates={{first: rates[0].EUR, second: rates[1].EUR, third: rates[2].EUR}}
+                         lowestRate={lowestRateEUR}
+            />
+            {currencyPairs.map(pair => (pair.rates[0] && (
+                    <CurrencyRow key={pair.label}
+                                 label={pair.label}
+                                 rates={{first: pair.rates[0], second: pair.rates[1], third: pair.rates[2]}}
+                                 lowestRate={pair.label === 'RUB/USD' ? lowestRubToUsd : pair.label === 'RUB/EUR' ? lowestRubToEur : lowestEurToUsd}
+                    />
+                )
+            ))}
         </div>
     );
 }

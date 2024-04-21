@@ -1,6 +1,7 @@
-import {CurrenciesMarket} from "./types";
+import {Currencies} from "./types";
 
 export interface CurrencyRowProps {
     label: string;
-    rates: CurrenciesMarket;
+    rates: Currencies;
+    lowestRate: string;
 }
