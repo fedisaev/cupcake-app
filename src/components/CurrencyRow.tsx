@@ -1,12 +1,10 @@
-interface CurrencyRowProps {
-    label: string;
-}
+import {CurrencyRowProps} from "../types/props";
 
-function CurrencyRow({label}: CurrencyRowProps) {
+function CurrencyRow({label, rates}: CurrencyRowProps) {
     return (
         <>
             <div className='item'>{label}</div>
-            <div className='item'></div>
+            <div className='item'>{rates.first.toFixed(3)}</div>
             <div className='item'></div>
             <div className='item'></div>
         </>
