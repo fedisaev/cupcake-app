@@ -23,9 +23,25 @@ export function useFetchRates(): FetchRatesResult {
         }
     }
 
+    async function fetchUpdateData() {
+        try {
+            const requests = markets.map(market => fetch(`${base_url}/${market}/poll`));
+            const responses = await Promise.all(requests);
+            const data = await Promise.all(responses.map(res => res.json()));
+            const allRates = data.map(marketData => marketData.rates);
+            setRates(allRates);
+            fetchUpdateData();
+        } catch (error) {
+            console.error('Error fetching exchange rates:', error);
+            setError(error.message);
+        }
+    }
+
     useEffect(() => {
         fetchData();
+        fetchUpdateData();
     }, []);
+
     return {rates, loading, error};
 }
 

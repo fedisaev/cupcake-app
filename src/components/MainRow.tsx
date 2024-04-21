@@ -1,4 +1,6 @@
-function MainRow() {
+import {memo} from "react";
+
+const MainRow = memo(function MainRow() {
     return (
         <>
             <div className='item'>Pair name/market</div>
@@ -7,6 +9,6 @@ function MainRow() {
             <div className='item'>Third</div>
         </>
     );
-}
+})
 
 export default MainRow;
