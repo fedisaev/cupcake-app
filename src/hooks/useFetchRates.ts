@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import {base_url, markets} from "../helpers/constants";
-import {FetchRatesResult, Rates} from "../types/types";
+import {dataResponse, FetchRatesResult, Rates} from "../types/types";
 
 export function useFetchRates(): FetchRatesResult {
 
@@ -11,35 +11,52 @@ export function useFetchRates(): FetchRatesResult {
     async function fetchData() {
         try {
             const requests = markets.map(market => fetch(`${base_url}/${market}`));
-            const responses = await Promise.all(requests);
-            const data = await Promise.all(responses.map(res => res.json()));
-            const allRates = data.map(marketData => marketData.rates);
+            const responses: Response[] = await Promise.all(requests);
+            const data: dataResponse[] = await Promise.all(responses.map(res => res.json()));
+            const allRates: Rates[] = data.map(marketData => marketData.rates);
             setRates(allRates);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching exchange rates:', error);
-            setLoading(false);
-            setError(error.message);
+            if (error instanceof Error) {
+                console.error('Error fetching exchange rates:', error);
+                setLoading(false);
+                setError(error.message);
+            }
         }
     }
 
     async function fetchUpdateData() {
         try {
             const requests = markets.map(market => fetch(`${base_url}/${market}/poll`));
-            const responses = await Promise.all(requests);
-            const data = await Promise.all(responses.map(res => res.json()));
-            const allRates = data.map(marketData => marketData.rates);
+            const responses: Response[] = await Promise.all(requests);
+            const data: dataResponse[] = await Promise.all(responses.map(res => res.json()));
+            const allRates: Rates[] = data.map(marketData => marketData.rates);
             setRates(allRates);
-            fetchUpdateData();
+            await fetchUpdateData();
         } catch (error) {
-            console.error('Error fetching exchange rates:', error);
-            setError(error.message);
+            if (error instanceof Error) {
+                console.error('Error fetching exchange rates:', error);
+                setError(error.message);
+            }
         }
     }
 
     useEffect(() => {
-        fetchData();
-        fetchUpdateData();
+        let isMounted = true;
+
+        const fetchDataAndStartPolling = async () => {
+            await fetchData();
+            if (isMounted) {
+                await fetchUpdateData();
+            }
+        };
+
+        fetchDataAndStartPolling();
+
+        return () => {
+            isMounted = false;
+        };
+
     }, []);
 
     return {rates, loading, error};

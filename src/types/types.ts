@@ -20,3 +20,10 @@ export interface CurrencyPair {
     label: string;
     rates: number[]
 }
+
+export interface dataResponse {
+    base: string;
+    date: string;
+    rates: Rates;
+    timestamp: number;
+}
